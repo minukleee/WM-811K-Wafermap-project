@@ -48,7 +48,7 @@ plt.show()
 
 <Figure size 640x480 with 1 Axes><img width="589" height="455" alt="image" src="https://github.com/user-attachments/assets/fdcca787-db66-423e-8cb3-fe215e1d2fb4" />
   
-Wafer 인덱스 열 확인, 센서 불량 확인 가능(1lot = 25wafers), 해당 열 불필요
+Wafer 인덱스 열 확인, 센서 불량 확인 가능(1lot = 25wafers), 해당 열 불필요?
 
 
 
