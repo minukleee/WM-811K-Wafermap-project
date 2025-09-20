@@ -231,7 +231,7 @@ plt.show()
 다음은 feature 선정의 단계로 넘어간다.
 
 
-# 1번째 feature 선정 - Density-based Features (13개: 시각화 참고)
+## 1번째 feature 선정 - Density-based Features (13개: 시각화 참고)
 
 ```python
 import skimage
@@ -282,18 +282,78 @@ plt.fill(x, y, 'blue', alpha=0.2)
 
 
 plt.title("Devide wafer map to 13 regions")
-plt.xticks([]) # 축 없애기
+plt.xticks([]) 
 plt.yticks([])
 plt.show()
 ```
+<Figure size 640x480 with 1 Axes><img width="515" height="411" alt="image" src="https://github.com/user-attachments/assets/f4de2a6f-9c7f-4e6d-b1ad-d7d7e6354eb1" />
+  
+중간 9부위와 상하좌우 4부위 사용해서 웨이퍼맵의 총 13부분의 밀도를 feature로 사용한다
+
+이제 해당 region을 df_withpattern['fea_reg']에 입력한다.
+
+```python
+df_withpattern['fea_reg']=df_withpattern.waferMap.apply(find_regions)
+```
+다음은 시각화로 재확인
+
+```python
+x = [9,340, 3, 16, 0, 25, 84, 37]
+labels2 = ['Center','Donut','Edge-Loc','Edge-Ring','Loc','Random','Scratch','Near-full']
+
+fig, ax = plt.subplots(nrows = 2, ncols = 4,figsize=(20, 10))
+ax = ax.ravel(order='C')
+for i in range(8):
+    ax[i].bar(np.linspace(1,13,13),df_withpattern.fea_reg[x[i]])
+    ax[i].set_title(df_withpattern.failureType[x[i]][0][0],fontsize=15)
+    ax[i].set_xticks([])
+    ax[i].set_yticks([])
+
+plt.tight_layout()
+plt.show() 
+```
+
+<Figure size 2000x1000 with 8 Axes><img width="1990" height="989" alt="image" src="https://github.com/user-attachments/assets/39ee2876-a348-4dd7-893a-302a22075ca8" />
+
+타입 별 나름 뚜렷한 차이를 보이므로 유의미한 feature로 채택 가능함.
 
 
+## 2번째 feature 선정 - Radon-based Features (40개: 20개 평균, 20개 표준편차 피처)
+
+라돈 변환은 위치별 픽셀의 밀도 변화를 감지하는 데 탁월하다. -> 웨이퍼맵 분류에 적합함.
+
+```python
+def change_val(img):
+    img[img==1] =0  
+    return img
+
+df_withpattern_copy = df_withpattern.copy()
+df_withpattern_copy['new_waferMap'] =df_withpattern_copy.waferMap.apply(change_val)
+```
 
 
+```python
+x = [9,340, 3, 16, 0, 25, 84, 37]
+labels2 = ['Center','Donut','Edge-Loc','Edge-Ring','Loc','Random','Scratch','Near-full']
 
+fig, ax = plt.subplots(nrows = 2, ncols = 4, figsize=(20, 10))
+ax = ax.ravel(order='C')
+for i in range(8):
+    img = df_withpattern_copy.waferMap[x[i]]
+    theta = np.linspace(0., 180., max(img.shape), endpoint=False)
+    sinogram = radon(img, theta=theta)    
+      
+    ax[i].imshow(sinogram, cmap=plt.cm.Greys_r, extent=(0, 180, 0, sinogram.shape[0]), aspect='auto')
+    ax[i].set_title(df_withpattern_copy.failureType[x[i]][0][0],fontsize=15)
+    ax[i].set_xticks([])
+plt.tight_layout()
 
+plt.show()
+```
+<Figure size 2000x1000 with 8 Axes><img width="1989" height="990" alt="image" src="https://github.com/user-attachments/assets/90fd5c45-1519-427c-8560-50721c7ed536" />
 
-
+라돈 변환 결과 시각화. 해당 결과로 그대로 사용해서는 안된다.
+웨이퍼의 크기가 모두 다 다르기 때문, 20개의 평균 & 표준편차 값으로 변환
 
 
 
