@@ -727,7 +727,8 @@ plt.show()
 기회가 생긴다면, 더 상위 분류 모델을 통해 검증해 볼 수 있겠음.
 
 
-
+Reference :
+https://www.kaggle.com/code/ashishpatel26/wm-811k-wafermap
 
 
 
