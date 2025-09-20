@@ -205,7 +205,16 @@ for k in x:
     plt.tight_layout()
     plt.show()
 ```
-<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/1981adfe-8796-4bc8-8232-a8f687d8a8eb" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/cbf6bbb5-8dbc-4bf5-b399-430c4f9f5890" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/47bf9b76-42b2-4713-b5aa-6196e3429e14" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/d8c1c9f9-856d-422d-8b28-65a9a4bd2528" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/6db46837-31d4-4fdb-9b86-d5088b03749c" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/98eb4486-586f-45d0-be27-04226a51d39f" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/0aabc167-cab4-4bd3-bb5a-5feaf774cbcf" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="222" alt="image" src="https://github.com/user-attachments/assets/b4d6d518-7748-4a12-b385-a03a3ae7be12" />
+<Figure size 1800x1200 with 10 Axes><img width="1789" height="249" alt="image" src="https://github.com/user-attachments/assets/a333cafc-f2fd-402b-a868-1c2d6a453a6d" />
+
+
 타입 별 같은 행으로 정렬하였다. 가장 우수한 특성을 보이는 웨이퍼를 선정해서 분류해서 다시 시각화 해보자.
 
 
@@ -354,6 +363,388 @@ plt.show()
 
 라돈 변환 결과 시각화. 해당 결과로 그대로 사용해서는 안된다.
 웨이퍼의 크기가 모두 다 다르기 때문, 20개의 평균 & 표준편차 값으로 변환
+
+
+```python
+def cubic_inter_mean(img):
+    theta = np.linspace(0., 180., max(img.shape), endpoint=False)
+    sinogram = radon(img, theta=theta)
+    xMean_Row = np.mean(sinogram, axis = 1)
+    x = np.linspace(1, xMean_Row.size, xMean_Row.size)
+    y = xMean_Row
+    f = interpolate.interp1d(x, y, kind = 'cubic')
+    xnew = np.linspace(1, xMean_Row.size, 20)
+    ynew = f(xnew)/100   # use interpolation function returned by `interp1d`
+    return ynew
+
+def cubic_inter_std(img):
+    theta = np.linspace(0., 180., max(img.shape), endpoint=False)
+    sinogram = radon(img, theta=theta)
+    xStd_Row = np.std(sinogram, axis=1)
+    x = np.linspace(1, xStd_Row.size, xStd_Row.size)
+    y = xStd_Row
+    f = interpolate.interp1d(x, y, kind = 'cubic')
+    xnew = np.linspace(1, xStd_Row.size, 20)
+    ynew = f(xnew)/100   # use interpolation function returned by `interp1d`
+    return ynew
+```
+
+```python
+df_withpattern_copy['fea_cub_mean'] =df_withpattern_copy.waferMap.apply(cubic_inter_mean)
+df_withpattern_copy['fea_cub_std'] =df_withpattern_copy.waferMap.apply(cubic_inter_std)
+```
+
+```python
+x = [9, 340, 3, 16, 0, 25, 84, 37]
+labels2 = ['Center','Donut','Edge-Loc','Edge-Ring','Loc','Random','Scratch','Near-full']
+
+fig, ax = plt.subplots(nrows = 2, ncols = 4,figsize=(20, 10))
+ax = ax.ravel(order='C')
+for i in range(8):
+    ax[i].bar(np.linspace(1,20,20),df_withpattern_copy.fea_cub_mean[x[i]])
+    ax[i].set_title(df_withpattern_copy.failureType[x[i]][0][0],fontsize=10)
+    ax[i].set_xticks([])
+    # ax[i].set_xlim([0,21])   
+    # ax[i].set_ylim([0,1])
+plt.tight_layout()
+plt.show() 
+```
+<Figure size 2000x1000 with 8 Axes><img width="1990" height="989" alt="image" src="https://github.com/user-attachments/assets/92b1ff1c-9a4b-47ef-92a1-a02ced395bfe" />
+
+
+```python
+fig, ax = plt.subplots(nrows = 2, ncols = 4,figsize=(20, 10))
+ax = ax.ravel(order='C')
+for i in range(8):
+    ax[i].bar(np.linspace(1,20,20),df_withpattern_copy.fea_cub_std[x[i]])
+    ax[i].set_title(df_withpattern_copy.failureType[x[i]][0][0],fontsize=10)
+    ax[i].set_xticks([])
+    # ax[i].set_xlim([0,21])   
+    # ax[i].set_ylim([0,0.3])
+plt.tight_layout()
+plt.show()
+```
+
+<Figure size 2000x1000 with 8 Axes><img width="1989" height="989" alt="image" src="https://github.com/user-attachments/assets/1f84722a-d882-4c2d-9743-c07af449f20b" />
+
+
+평균과 표준편차 각각 20 features 그래프로 plot하였다. 끝.
+
+## 3번째 feature 선정 - Geometry-based Features (6개: 면적, 둘레, 장축길이, 단축길이, 이심률(비율), 밀도)
+
+```python
+x = [9,340, 3, 16, 0, 25, 84, 37]
+labels2 = ['Center','Donut','Edge-Loc','Edge-Ring','Loc','Random','Scratch','Near-full']
+
+fig, ax = plt.subplots(nrows = 2, ncols = 4,figsize=(20, 10))
+ax = ax.ravel(order='C')
+for i in range(8):
+    img = df_withpattern_copy.waferMap[x[i]]
+    zero_img = np.zeros(img.shape)
+    img_labels = measure.label(img, connectivity=1, background=0) # neighbors=4 부분만 삭제
+    img_labels = img_labels-1
+    if img_labels.max()==0:
+        no_region = 0
+    else:
+        info_region = stats.mode(img_labels[img_labels>-1], axis = None)
+        no_region = info_region[0]
+    
+    zero_img[np.where(img_labels==no_region)] = 2 
+    ax[i].imshow(zero_img)
+    ax[i].set_title(df_withpattern_copy.failureType[x[i]][0][0],fontsize=10)
+    ax[i].set_xticks([])
+plt.tight_layout()
+plt.show() 
+```
+
+<Figure size 2000x1000 with 8 Axes><img width="1989" height="983" alt="image" src="https://github.com/user-attachments/assets/535ed192-837b-43b3-9c22-7e080f1dbf55" />
+
+패턴 별 가장 특징이 두드러지는 부분만 시각화하였다.
+
+
+아래는 각 객체(면적, 둘레, 장축길이, 단축길이, 이심률(비율), 밀도)를 정의하고 계산하는 코드.
+
+```python
+def cal_dist(img,x,y):
+    dim0=np.size(img,axis=0)    
+    dim1=np.size(img,axis=1)
+    dist = np.sqrt((x-dim0/2)**2+(y-dim1/2)**2)
+    return dist  
+```
+
+```python
+from scipy import stats
+from skimage import measure
+
+
+def fea_geom(img):
+    norm_area=img.shape[0]*img.shape[1]
+    norm_perimeter=np.sqrt((img.shape[0])**2+(img.shape[1])**2)
+    
+    img_labels = measure.label(img, connectivity=1, background=0)
+
+    if img_labels.max()==0:
+        img_labels[img_labels==0]=1
+        no_region = 0
+    else:
+        info_region = stats.mode(img_labels[img_labels>0], axis=None)
+        no_region = info_region.mode - 1
+    
+    prop = measure.regionprops(img_labels.astype(int))
+    
+    if hasattr(no_region, "__len__"):
+        no_region = no_region[0]
+        
+    prop_area = prop[no_region].area/norm_area
+    prop_perimeter = prop[no_region].perimeter/norm_perimeter 
+    
+    prop_cent = prop[no_region].local_centroid 
+    prop_cent = cal_dist(img,prop_cent[0],prop_cent[1])
+    
+    prop_majaxis = prop[no_region].major_axis_length/norm_perimeter 
+    prop_minaxis = prop[no_region].minor_axis_length/norm_perimeter  
+    prop_ecc = prop[no_region].eccentricity  
+    prop_solidity = prop[no_region].solidity  
+    
+    return prop_area, prop_perimeter, prop_majaxis, prop_minaxis, prop_ecc, prop_solidity
+```
+
+```python
+df_withpattern_copy['fea_geom'] = df_withpattern_copy.waferMap.apply(fea_geom)
+```
+`df_withpattern_copy['fea_geom']에 해당 return값 입력.`
+
+```python
+df_withpattern_copy.fea_geom[340]
+```
+`(np.float64(0.30881585811163276),
+ np.float64(3.4633305623147477),
+ np.float64(0.7464951525564261),
+ np.float64(0.5214489845402435),
+ 0.7155811292862498,
+ np.float64(0.6103092783505155))`
+ 도넛타입[340]을 예로 6가지 객체값이 잘 읽히는 것 확인
+ 
+
+# Step3: feature 종합 단계 (총정리)
+
+Density-based Features: 13개
+
+
+Radon-based Features: 40개
+
+
+Geometry-based Features: 6개
+
+
+총합: 59개가 나오는지 확인.
+
+```python
+df_all=df_withpattern_copy.copy()
+a=[df_all.fea_reg[i] for i in range(df_all.shape[0])]
+b=[df_all.fea_cub_mean[i] for i in range(df_all.shape[0])] 
+c=[df_all.fea_cub_std[i] for i in range(df_all.shape[0])] 
+d=[df_all.fea_geom[i] for i in range(df_all.shape[0])] 
+fea_all = np.concatenate((np.array(a),np.array(b),np.array(c),np.array(d)),axis=1) 
+```
+
+```python
+fea_all.shape
+```
+
+`(25519, 59)`
+
+```python
+label=[df_all.failureNum[i] for i in range(df_all.shape[0])]
+label=np.array(label)
+
+label
+```
+
+`array([4., 2., 2., ..., 3., 2., 3.], shape=(25519,))`
+
+```python
+len(label)
+```
+
+`25519`
+
+
+# Step4: train_test_split
+훈련 데이터와 테스트 데이터를 분류한다.
+
+```python
+from sklearn.metrics import classification_report, roc_auc_score, accuracy_score
+from sklearn.model_selection import train_test_split
+from collections import  Counter
+
+# feature 데이터와 정답 데이터 분류하고 훈련데이터와 테스트데이터 분류 
+X = fea_all
+y = label
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)                      
+print('Training target statistics: {}'.format(Counter(y_train)))
+print('Testing target statistics: {}'.format(Counter(y_test)))
+
+RANDOM_STATE =42
+```
+
+
+# Step5: 머신러닝 알고리즘 선정: One-VS-One multi-class SVM 
+
+```python
+from sklearn.svm import LinearSVC
+from sklearn.multiclass import OneVsOneClassifier
+
+clf2 = OneVsOneClassifier(LinearSVC(random_state = RANDOM_STATE)).fit(X_train, y_train)
+
+y_train_pred = clf2.predict(X_train)
+y_test_pred = clf2.predict(X_test)
+
+train_acc2 = np.sum(y_train == y_train_pred, axis=0, dtype='float') / X_train.shape[0]
+test_acc2 = np.sum(y_test == y_test_pred, axis=0, dtype='float') / X_test.shape[0]
+
+print('One-Vs-One Training acc: {}'.format(train_acc2*100))
+print('One-Vs-One Testing acc: {}'.format(test_acc2*100))
+```
+
+`One-Vs-One Training acc: 82.73159517216155
+One-Vs-One Testing acc: 82.3667711598746`
+
+```python
+#평가
+print(classification_report(y_train, y_train_pred))
+print('Acc Score :', accuracy_score(y_train, y_train_pred))
+```
+
+```
+precision    recall  f1-score   support
+
+         0.0       0.91      0.94      0.92      3238
+         1.0       0.85      0.79      0.82       404
+         2.0       0.69      0.72      0.71      3860
+         3.0       0.92      0.94      0.93      7299
+         4.0       0.68      0.64      0.66      2677
+         5.0       0.91      0.87      0.89       640
+         6.0       0.69      0.52      0.59       905
+         7.0       0.97      0.99      0.98       116
+
+    accuracy                           0.83     19139
+   macro avg       0.83      0.80      0.81     19139
+weighted avg       0.82      0.83      0.83     19139
+
+Acc Score : 0.8273159517216155
+```
+
+
+```python
+# 평가
+print(classification_report(y_test, y_test_pred))
+print('Acc Score :', accuracy_score(y_test, y_test_pred))
+```
+
+```
+           precision    recall  f1-score   support
+
+         0.0       0.91      0.93      0.92      1056
+         1.0       0.83      0.79      0.81       151
+         2.0       0.69      0.72      0.70      1329
+         3.0       0.91      0.93      0.92      2381
+         4.0       0.68      0.65      0.66       916
+         5.0       0.93      0.89      0.91       226
+         6.0       0.68      0.56      0.61       288
+         7.0       0.92      1.00      0.96        33
+
+    accuracy                           0.82      6380
+   macro avg       0.82      0.81      0.81      6380
+weighted avg       0.82      0.82      0.82      6380
+
+Acc Score : 0.8236677115987461
+```
+
+# 최종 Confusion Matrix 시각화
+
+```python
+import itertools
+from sklearn.metrics import confusion_matrix
+
+def plot_confusion_matrix(cm, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    #print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')  
+```
+
+```python
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(y_test, y_test_pred)
+# np.set_printoptions(precision=2)
+
+from matplotlib import gridspec
+fig = plt.figure(figsize=(15, 8)) 
+gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1]) 
+
+## Plot non-normalized confusion matrix
+plt.subplot(gs[0])
+plot_confusion_matrix(cnf_matrix, title='Confusion matrix')
+
+# Plot normalized confusion matrix
+plt.subplot(gs[1])
+plot_confusion_matrix(cnf_matrix, normalize=True, title='Normalized confusion matrix')
+
+plt.tight_layout()
+plt.show()
+```
+
+<Figure size 1500x800 with 4 Axes><img width="1454" height="790" alt="image" src="https://github.com/user-attachments/assets/fa4918c5-f125-4b06-b611-aa36e2274e07" />
+
+
+훌륭한 분류 모델이 개발되었다.
+
+
+기회가 생긴다면, 더 상위 분류 모델을 통해 검증해 볼 수 있겠음.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
